@@ -31,7 +31,7 @@ import 'package:blackhole/Services/isolate_service.dart';
 import 'package:blackhole/Services/yt_music.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:just_audio/just_audio.dart';
+import 'package:just_audio/just_audio.dart'; // Removing for ubuntu
 import 'package:logging/logging.dart';
 import 'package:rxdart/rxdart.dart';
 

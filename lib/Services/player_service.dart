@@ -20,10 +20,12 @@
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:blackhole/Helpers/mediaitem_converter.dart';
 import 'package:blackhole/Screens/Player/audioplayer.dart';
 import 'package:blackhole/Services/youtube_services.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/widgets.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
@@ -32,6 +34,7 @@ import 'package:path_provider/path_provider.dart';
 
 // ignore: avoid_classes_with_only_static_members
 class PlayerInvoke {
+  static final AudioPlayer currentAudioPlayer = GetIt.I<AudioPlayer>();
   static final AudioPlayerHandler audioHandler = GetIt.I<AudioPlayerHandler>();
 
   static Future<void> init({
@@ -263,31 +266,49 @@ class PlayerInvoke {
   }
 
   static Future<void> updateNplay(List<MediaItem> queue, int index) async {
-    await audioHandler.setShuffleMode(AudioServiceShuffleMode.none);
-    await audioHandler.updateQueue(queue);
-    await audioHandler.customAction('skipToMediaItem', {'id': queue[index].id});
-    await audioHandler.play();
-    final String repeatMode =
-        Hive.box('settings').get('repeatMode', defaultValue: 'None').toString();
-    final bool enforceRepeat =
-        Hive.box('settings').get('enforceRepeat', defaultValue: false) as bool;
-    if (enforceRepeat) {
-      switch (repeatMode) {
-        case 'None':
-          audioHandler.setRepeatMode(AudioServiceRepeatMode.none);
-          break;
-        case 'All':
-          audioHandler.setRepeatMode(AudioServiceRepeatMode.all);
-          break;
-        case 'One':
-          audioHandler.setRepeatMode(AudioServiceRepeatMode.one);
-          break;
-        default:
-          break;
-      }
+    // ignore: avoid_print
+    print('Playing the song! \n Song: ${queue[index]}');
+    // For Ubuntu
+
+    final extras = queue[index].extras;
+
+    if (extras == null) {
+      // ignore: avoid_print
+      print('No extras!');
     } else {
-      audioHandler.setRepeatMode(AudioServiceRepeatMode.none);
-      Hive.box('settings').put('repeatMode', 'None');
+      final String url = extras['url'] as String;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await currentAudioPlayer.play(UrlSource(url));
+      });
     }
+
+    // Original code
+
+    // await audioHandler.setShuffleMode(AudioServiceShuffleMode.none);
+    // await audioHandler.updateQueue(queue);
+    // await audioHandler.customAction('skipToMediaItem', {'id': queue[index].id});
+    // await audioHandler.play();
+    // final String repeatMode =
+    //     Hive.box('settings').get('repeatMode', defaultValue: 'None').toString();
+    // final bool enforceRepeat =
+    //     Hive.box('settings').get('enforceRepeat', defaultValue: false) as bool;
+    // if (enforceRepeat) {
+    //   switch (repeatMode) {
+    //     case 'None':
+    //       audioHandler.setRepeatMode(AudioServiceRepeatMode.none);
+    //       break;
+    //     case 'All':
+    //       audioHandler.setRepeatMode(AudioServiceRepeatMode.all);
+    //       break;
+    //     case 'One':
+    //       audioHandler.setRepeatMode(AudioServiceRepeatMode.one);
+    //       break;
+    //     default:
+    //       break;
+    //   }
+    // } else {
+    //   audioHandler.setRepeatMode(AudioServiceRepeatMode.none);
+    //   Hive.box('settings').put('repeatMode', 'None');
+    // }
   }
 }

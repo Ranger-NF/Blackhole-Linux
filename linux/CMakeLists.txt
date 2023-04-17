@@ -1,3 +1,5 @@
+set ( CMAKE_CXX_COMPILER "/usr/bin/g++" )
+set ( CMAKE_C_COMPILER "/usr/bin/gcc" )
 cmake_minimum_required(VERSION 3.10)
 project(runner LANGUAGES CXX)
 
