@@ -130,6 +130,17 @@ class AudioPlayerHandlerImpl extends BaseAudioHandler
     if (preferredCompactNotificationButtons.length > 3) {
       preferredCompactNotificationButtons = [1, 2, 3];
     }
+
+    if (Platform.isLinux && Process.runSync('which', ['mpv']).exitCode != 0) {
+      Logger.root.severe(
+        'MPV is not installed for just_audio_mpv\nCheck https://pub.dev/packages/just_audio_mpv for details',
+      );
+    }
+    // } else {
+    //   (dynamic message, {dynamic error, JAMPV_LogLevel level = JAMPV_LogLevel.debug, StackTrace stackTrace}) {
+
+    //   };
+
     final session = await AudioSession.instance;
     await session.configure(const AudioSessionConfiguration.music());
 
