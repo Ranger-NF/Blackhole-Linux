@@ -38,7 +38,8 @@ dependencies:
   just_audio: ^0.9.31
   # Discontinued, Use just_audio_windows instead.
   # just_audio_libwinmedia: ^0.0.4 # For windows and linux.
-  just_audio_mpv: ^0.1.6
+  just_audio_mpv:
+    path: ./just_audio_mpv
   logging: ^1.1.1
   marquee: ^2.2.3
   material_design_icons_flutter: 5.0.5955-rc.1
