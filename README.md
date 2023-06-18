@@ -1,5 +1,7 @@
 ![Repo Banner](https://user-images.githubusercontent.com/87353286/144381080-faf8e557-7909-43a1-a8e2-208936e5a8f8.png)
 
+### ⚠️ NOTE: This is an outdated fork of [BlackHole](https://github.com/Sangwan5688/BlackHole) to implement support for Linux system
+
 # BlackHole
 
 An Open-Source Music Player App for all your needs!
@@ -150,8 +152,8 @@ You can join our [Telegram Channel](https://t.me/blackhole_official) or [Telegra
 
 To read full changelog visit the [wiki page](https://github.com/Sangwan5688/BlackHole/wiki/Changelog)
 
-
 ## Disclaimer
+
 ```
 BlackHole does not own or have any affiliation with the songs and other content available through the app.
 All songs and other content are the property of their respective owners and are protected by copyright law.
