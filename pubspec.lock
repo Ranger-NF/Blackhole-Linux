@@ -81,6 +81,62 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.1.13"
+  audioplayers:
+    dependency: "direct main"
+    description:
+      name: audioplayers
+      sha256: "16451eab798b23ad9307aef6f9ca62bb8fb06542af8810eead0d236d3fd40a42"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.1"
+  audioplayers_android:
+    dependency: transitive
+    description:
+      name: audioplayers_android
+      sha256: b2c833e6f718b6b030454e329931229afafe9327fdb002874dd544dc8bf2484d
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
+  audioplayers_darwin:
+    dependency: transitive
+    description:
+      name: audioplayers_darwin
+      sha256: e7a3c8759bf11ecfe4b20df338bf9f3d37c7719a5761c46a3833aba0ceeaacff
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.1"
+  audioplayers_linux:
+    dependency: transitive
+    description:
+      name: audioplayers_linux
+      sha256: e95b65e1f4d4764601dac5e65f8d8186fc29401043ab020f1dacec483d708707
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.4"
+  audioplayers_platform_interface:
+    dependency: transitive
+    description:
+      name: audioplayers_platform_interface
+      sha256: "178581a44cb685fd798d2108111d2e98cca3400e30b9c3a05546f124fb37f600"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.0"
+  audioplayers_web:
+    dependency: transitive
+    description:
+      name: audioplayers_web
+      sha256: "859ba09be2a57e57a787273f18c8cf0d9b61383870c5ee4b5632fe9adbc37edf"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.0"
+  audioplayers_windows:
+    dependency: transitive
+    description:
+      name: audioplayers_windows
+      sha256: "622e01c4c357c2aaf1b956c3a0f89d97c3cb40315c03f16e3b6c2a31ff9c38bc"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.3"
   audiotagger:
     dependency: "direct main"
     description:
@@ -473,10 +529,16 @@ packages:
   just_audio_mpv:
     dependency: "direct main"
     description:
+<<<<<<< HEAD
       name: just_audio_mpv
       sha256: "98ac36712f3fe4fb0cf545f29c250fbd55e52c8445a4b0a4ee0bc9322f192797"
       url: "https://pub.dev"
     source: hosted
+=======
+      path: just_audio_mpv
+      relative: true
+    source: path
+>>>>>>> ae614c09974e107c3955968a65de68fc7e88d95a
     version: "0.1.6"
   just_audio_platform_interface:
     dependency: transitive
@@ -506,10 +568,17 @@ packages:
     dependency: "direct dev"
     description:
       name: lint
+<<<<<<< HEAD
       sha256: f55edc698b3b0058e016232a487a72652c3fa01a504a8c5b10f66add0e72bfb9
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
+=======
+      sha256: "03369e5af39b115ef89872b764ff1ac5e5858ab0227776d036d8fe43844221e8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.20"
+>>>>>>> ae614c09974e107c3955968a65de68fc7e88d95a
   logging:
     dependency: "direct main"
     description:
@@ -569,10 +638,16 @@ packages:
   mpv_dart:
     dependency: transitive
     description:
+<<<<<<< HEAD
       name: mpv_dart
       sha256: a33bd9a68439b496b7a5f36fecd3aa3cf6cbf0176ae15b9b60b12ae96e58f5a4
       url: "https://pub.dev"
     source: hosted
+=======
+      path: "just_audio_mpv/mpv_dart"
+      relative: true
+    source: path
+>>>>>>> ae614c09974e107c3955968a65de68fc7e88d95a
     version: "0.0.1"
   msix:
     dependency: "direct dev"
@@ -814,6 +889,7 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.3"
+<<<<<<< HEAD
   receive_sharing_intent:
     dependency: "direct main"
     description:
@@ -822,6 +898,8 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.5"
+=======
+>>>>>>> ae614c09974e107c3955968a65de68fc7e88d95a
   retry:
     dependency: transitive
     description:
@@ -1116,5 +1194,9 @@ packages:
     source: hosted
     version: "1.12.4"
 sdks:
+<<<<<<< HEAD
   dart: ">=3.0.0-0 <4.0.0"
+=======
+  dart: ">=2.19.0 <3.0.0"
+>>>>>>> ae614c09974e107c3955968a65de68fc7e88d95a
   flutter: ">=3.3.0"

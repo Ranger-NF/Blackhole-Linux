@@ -20,10 +20,12 @@
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
+//import 'package:audioplayers/audioplayers.dart';
 import 'package:blackhole/Helpers/mediaitem_converter.dart';
 import 'package:blackhole/Screens/Player/audioplayer.dart';
 import 'package:blackhole/Services/youtube_services.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/widgets.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
@@ -32,6 +34,7 @@ import 'package:path_provider/path_provider.dart';
 
 // ignore: avoid_classes_with_only_static_members
 class PlayerInvoke {
+  //static final AudioPlayer currentAudioPlayer = GetIt.I<AudioPlayer>();
   static final AudioPlayerHandler audioHandler = GetIt.I<AudioPlayerHandler>();
 
   static Future<void> init({
@@ -263,6 +266,12 @@ class PlayerInvoke {
   }
 
   static Future<void> updateNplay(List<MediaItem> queue, int index) async {
+    // ignore: avoid_print
+    //print('Playing the song! \n Song: ${queue[index]}');
+    // For Ubuntu
+
+    // Original code
+
     await audioHandler.setShuffleMode(AudioServiceShuffleMode.none);
     await audioHandler.updateQueue(queue);
     await audioHandler.customAction('skipToMediaItem', {'id': queue[index].id});

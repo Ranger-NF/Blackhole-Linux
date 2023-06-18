@@ -37,7 +37,8 @@ dependencies:
   just_audio: ^0.9.31
   # Discontinued, Use just_audio_windows instead.
   # just_audio_libwinmedia: ^0.0.4 # For windows and linux.
-  just_audio_mpv: ^0.1.6
+  just_audio_mpv:
+    path: ./just_audio_mpv
   logging: ^1.1.1
   marquee: ^2.2.3
   material_design_icons_flutter: 5.0.5955-rc.1
@@ -46,7 +47,7 @@ dependencies:
   palette_generator: ^0.3.3+2
   path_provider: ^2.0.12
   permission_handler: ^10.2.0
-  receive_sharing_intent: ^1.4.5
+  # receive_sharing_intent: ^1.4.5 # Causing errors in ubuntu
   salomon_bottom_bar: ^3.3.1
   share_plus: ^6.3.0
   sliding_up_panel: ^2.0.0+1
