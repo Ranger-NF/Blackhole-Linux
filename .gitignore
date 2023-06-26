@@ -40,6 +40,8 @@ lib/generated_plugin_registrant.dart
 **/linux/flutter/generated_plugin_registrant.h
 **/linux/flutter/generated_plugins.cmake
 
+/debian/packages/*
+
 # Symbolication related
 app.*.symbols
 

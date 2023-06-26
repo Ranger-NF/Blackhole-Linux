@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=0.1
+Name=BlackHole
+GenericName=BlackHole
+Comment=An Open-Source Music Player App for all your needs!
+Terminal=false
+Type=Application
+Categories=Utility
+Keywords=Flutter;share;files;
+
+Name[en_US]=blackhole.desktop
