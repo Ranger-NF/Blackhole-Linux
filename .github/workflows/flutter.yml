@@ -1,98 +1,100 @@
-name: Build
+# REASON FOR COMMENTING OUT: Unable to access the telegram credentials (Due to this being a fork)
 
-on:
-  push:
-    branches:
-      - main
+# name: Build
 
-env:
-  JAVA_VERSION: "12.x"
-  FLUTTER_CHANNEL: "stable"
-  PROPERTIES_PATH: "./android/key.properties"
+# on:
+#   push:
+#     branches:
+#       - main
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+# env:
+#   JAVA_VERSION: "12.x"
+#   FLUTTER_CHANNEL: "stable"
+#   PROPERTIES_PATH: "./android/key.properties"
 
-    steps:
-      - uses: actions/checkout@v1
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
 
-      # Setup Java environment in order to build the Android app.
-      - uses: actions/setup-java@v1
-        with:
-          java-version: ${{env.JAVA_VERSION}}
-          cache: "gradle"
+#     steps:
+#       - uses: actions/checkout@v1
 
-      # Gradle cache for faster builds
-      - uses: actions/cache@v2
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+#       # Setup Java environment in order to build the Android app.
+#       - uses: actions/setup-java@v1
+#         with:
+#           java-version: ${{env.JAVA_VERSION}}
+#           cache: "gradle"
 
-      # Setup the flutter environment.
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: ${{env.FLUTTER_CHANNEL}}
-          cache: true
-      
-      - run: |
-          echo storePassword=${{ secrets.STORE_PASSWORD }} >> ${{env.PROPERTIES_PATH}}
-          echo keyPassword=${{ secrets.KEY_PASSWORD }} >> ${{env.PROPERTIES_PATH}}
-          echo keyAlias=${{ secrets.KEY_ALIAS }} >> ${{env.PROPERTIES_PATH}}
-          echo storeFile=/home/runner/work/BlackHole/BlackHole/android/app/keystore.jks >> ${{env.PROPERTIES_PATH}}
-          echo ${{ secrets.KEYSTORE }} | base64 --decode > /home/runner/work/BlackHole/BlackHole/android/app/keystore.jks
+#       # Gradle cache for faster builds
+#       - uses: actions/cache@v2
+#         with:
+#           path: |
+#             ~/.gradle/caches
+#             ~/.gradle/wrapper
+#           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+#           restore-keys: |
+#             ${{ runner.os }}-gradle-
 
-      # Get flutter dependencies.
-      - run: flutter pub get
+#       # Setup the flutter environment.
+#       - uses: subosito/flutter-action@v2
+#         with:
+#           channel: ${{env.FLUTTER_CHANNEL}}
+#           cache: true
 
-      # Check for any formatting issues in the code.
-      - run: flutter format --set-exit-if-changed .
+#       - run: |
+#           echo storePassword=${{ secrets.STORE_PASSWORD }} >> ${{env.PROPERTIES_PATH}}
+#           echo keyPassword=${{ secrets.KEY_PASSWORD }} >> ${{env.PROPERTIES_PATH}}
+#           echo keyAlias=${{ secrets.KEY_ALIAS }} >> ${{env.PROPERTIES_PATH}}
+#           echo storeFile=/home/runner/work/BlackHole/BlackHole/android/app/keystore.jks >> ${{env.PROPERTIES_PATH}}
+#           echo ${{ secrets.KEYSTORE }} | base64 --decode > /home/runner/work/BlackHole/BlackHole/android/app/keystore.jks
 
-      # Statically analyze the Dart code for any errors.
-      - run: flutter analyze .
+#       # Get flutter dependencies.
+#       - run: flutter pub get
 
-      # Run widget tests for our flutter project.
-      # - run: flutter test
+#       # Check for any formatting issues in the code.
+#       - run: flutter format --set-exit-if-changed .
 
-      # Build apk.
-      - run: flutter build apk --release --split-per-abi
+#       # Statically analyze the Dart code for any errors.
+#       - run: flutter analyze .
 
-      # Upload generated apk to the artifacts.
-      - uses: actions/upload-artifact@v2
-        with:
-          name: app-arm64-v8a-release.apk
-          path: build/app/outputs/apk/release/app-arm64-v8a-release.apk
+#       # Run widget tests for our flutter project.
+#       # - run: flutter test
 
-      - uses: actions/upload-artifact@v2
-        with:
-          name: app-armeabi-v7a-release.apk
-          path: build/app/outputs/apk/release/app-armeabi-v7a-release.apk
+#       # Build apk.
+#       - run: flutter build apk --release --split-per-abi
 
-      - name: Commit on Telegram
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          format: markdown
-          disable_web_page_preview: true
-          message: |
-            New commit pushed to [${{ github.event.repository.name }}](${{ github.event.repository.html_url }}) by [${{ github.event.head_commit.author.name }}](${{ github.event.head_commit.author.html_url }}).
-            Commit message: ${{ github.event.head_commit.message }}
-          document: build/app/outputs/apk/release/app-arm64-v8a-release.apk, build/app/outputs/apk/release/app-armeabi-v7a-release.apk
+#       # Upload generated apk to the artifacts.
+#       - uses: actions/upload-artifact@v2
+#         with:
+#           name: app-arm64-v8a-release.apk
+#           path: build/app/outputs/apk/release/app-arm64-v8a-release.apk
 
-      - name: Report failure on Telegram
-        uses: appleboy/telegram-action@master
-        if: ${{ failure() }}
-        with:
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          format: markdown
-          disable_web_page_preview: true
-          message: |
-            Build Failed!! @Sangwan5688
-            Commit was pushed to [${{ github.event.repository.name }}](${{ github.event.repository.html_url }}) by [${{ github.event.head_commit.author.name }}](${{ github.event.head_commit.author.html_url }}).
-            Commit message: ${{ github.event.head_commit.message }}
+#       - uses: actions/upload-artifact@v2
+#         with:
+#           name: app-armeabi-v7a-release.apk
+#           path: build/app/outputs/apk/release/app-armeabi-v7a-release.apk
+
+#       - name: Commit on Telegram
+#         uses: appleboy/telegram-action@master
+#         with:
+#           to: ${{ secrets.TELEGRAM_CHAT_ID }}
+#           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+#           format: markdown
+#           disable_web_page_preview: true
+#           message: |
+#             New commit pushed to [${{ github.event.repository.name }}](${{ github.event.repository.html_url }}) by [${{ github.event.head_commit.author.name }}](${{ github.event.head_commit.author.html_url }}).
+#             Commit message: ${{ github.event.head_commit.message }}
+#           document: build/app/outputs/apk/release/app-arm64-v8a-release.apk, build/app/outputs/apk/release/app-armeabi-v7a-release.apk
+
+#       - name: Report failure on Telegram
+#         uses: appleboy/telegram-action@master
+#         if: ${{ failure() }}
+#         with:
+#           to: ${{ secrets.TELEGRAM_CHAT_ID }}
+#           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+#           format: markdown
+#           disable_web_page_preview: true
+#           message: |
+#             Build Failed!! @Sangwan5688
+#             Commit was pushed to [${{ github.event.repository.name }}](${{ github.event.repository.html_url }}) by [${{ github.event.head_commit.author.name }}](${{ github.event.head_commit.author.html_url }}).
+#             Commit message: ${{ github.event.head_commit.message }}

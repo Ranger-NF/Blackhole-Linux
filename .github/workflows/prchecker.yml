@@ -1,79 +1,81 @@
-name: PR Check
+# REASON FOR COMMENTING OUT: Unable to access the telegram credentials (Due to this being a fork)
 
-on:
-  pull_request:
-    branches:
-      - main
+# name: PR Check
 
-env:
-  JAVA_VERSION: "12.x"
-  FLUTTER_CHANNEL: "stable"
-  PROPERTIES_PATH: "./android/key.properties"
+# on:
+#   pull_request:
+#     branches:
+#       - main
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+# env:
+#   JAVA_VERSION: "12.x"
+#   FLUTTER_CHANNEL: "stable"
+#   PROPERTIES_PATH: "./android/key.properties"
 
-    steps:
-      - uses: actions/checkout@v1
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
 
-      # Setup Java environment in order to build the Android app.
-      - uses: actions/setup-java@v1
-        with:
-          java-version: ${{env.JAVA_VERSION}}
-          cache: "gradle"
+#     steps:
+#       - uses: actions/checkout@v1
 
-      # Gradle cache for faster builds
-      - uses: actions/cache@v2
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+#       # Setup Java environment in order to build the Android app.
+#       - uses: actions/setup-java@v1
+#         with:
+#           java-version: ${{env.JAVA_VERSION}}
+#           cache: "gradle"
 
-      # Setup the flutter environment.
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: ${{env.FLUTTER_CHANNEL}}
-          cache: true
+#       # Gradle cache for faster builds
+#       - uses: actions/cache@v2
+#         with:
+#           path: |
+#             ~/.gradle/caches
+#             ~/.gradle/wrapper
+#           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+#           restore-keys: |
+#             ${{ runner.os }}-gradle-
 
-      - run: |
-          echo storePassword=${{ secrets.STORE_PASSWORD }} >> ${{env.PROPERTIES_PATH}}
-          echo keyPassword=${{ secrets.KEY_PASSWORD }} >> ${{env.PROPERTIES_PATH}}
-          echo keyAlias=${{ secrets.KEY_ALIAS }} >> ${{env.PROPERTIES_PATH}}
-          echo storeFile=/home/runner/work/BlackHole/BlackHole/android/app/keystore.jks >> ${{env.PROPERTIES_PATH}}
-          echo ${{ secrets.KEYSTORE }} | base64 --decode > /home/runner/work/BlackHole/BlackHole/android/app/keystore.jks
+#       # Setup the flutter environment.
+#       - uses: subosito/flutter-action@v2
+#         with:
+#           channel: ${{env.FLUTTER_CHANNEL}}
+#           cache: true
 
-      # Get flutter dependencies.
-      - run: flutter pub get
+#       - run: |
+#           echo storePassword=${{ secrets.STORE_PASSWORD }} >> ${{env.PROPERTIES_PATH}}
+#           echo keyPassword=${{ secrets.KEY_PASSWORD }} >> ${{env.PROPERTIES_PATH}}
+#           echo keyAlias=${{ secrets.KEY_ALIAS }} >> ${{env.PROPERTIES_PATH}}
+#           echo storeFile=/home/runner/work/BlackHole/BlackHole/android/app/keystore.jks >> ${{env.PROPERTIES_PATH}}
+#           echo ${{ secrets.KEYSTORE }} | base64 --decode > /home/runner/work/BlackHole/BlackHole/android/app/keystore.jks
 
-      # Check for any formatting issues in the code.
-      - run: flutter format --set-exit-if-changed .
+#       # Get flutter dependencies.
+#       - run: flutter pub get
 
-      # Statically analyze the Dart code for any errors.
-      - run: flutter analyze .
+#       # Check for any formatting issues in the code.
+#       - run: flutter format --set-exit-if-changed .
 
-      # Run widget tests for our flutter project.
-      # - run: flutter test
+#       # Statically analyze the Dart code for any errors.
+#       - run: flutter analyze .
 
-      # Build apk.
-      - run: flutter build apk --debug --split-per-abi
+#       # Run widget tests for our flutter project.
+#       # - run: flutter test
 
-      # Upload generated apk to the artifacts.
-      - uses: actions/upload-artifact@v2
-        with:
-          name: app-arm64-v8a-debug.apk
-          path: build/app/outputs/apk/release/app-arm64-v8a-debug.apk
+#       # Build apk.
+#       - run: flutter build apk --debug --split-per-abi
 
-      # - name: Commit on Telegram
-      #   uses: appleboy/telegram-action@master
-      #   with:
-      #     to: ${{ secrets.TELEGRAM_USER_ID }}
-      #     token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-      #     format: markdown
-      #     disable_web_page_preview: true
-      #     message: |
-      #       New PR raised to [${{ github.event.repository.name }}](${{ github.event.repository.html_url }}) by [${{ github.event.sender.name }}](${{ github.event.sender.html_url }}).
-      #     document: build/app/outputs/apk/release/app-arm64-v8a-debug.apk
+#       # Upload generated apk to the artifacts.
+#       - uses: actions/upload-artifact@v2
+#         with:
+#           name: app-arm64-v8a-debug.apk
+#           path: build/app/outputs/apk/release/app-arm64-v8a-debug.apk
+
+#       # - name: Commit on Telegram
+#       #   uses: appleboy/telegram-action@master
+#       #   with:
+#       #     to: ${{ secrets.TELEGRAM_USER_ID }}
+#       #     token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+#       #     format: markdown
+#       #     disable_web_page_preview: true
+#       #     message: |
+#       #       New PR raised to [${{ github.event.repository.name }}](${{ github.event.repository.html_url }}) by [${{ github.event.sender.name }}](${{ github.event.sender.html_url }}).
+#       #     document: build/app/outputs/apk/release/app-arm64-v8a-debug.apk

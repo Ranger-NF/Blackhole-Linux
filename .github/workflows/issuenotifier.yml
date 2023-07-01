@@ -1,26 +1,27 @@
-name: Issue Notifier
-on:
-  issues:
-    types:
-      - reopened
-      - opened
+# REASON FOR COMMENTING OUT: Unable to access the telegram credentials (Due to this being a fork)
 
-jobs:
-  notify:
-    runs-on: ubuntu-latest
-    permissions:
-      issues: read
+# name: Issue Notifier
+# on:
+#   issues:
+#     types:
+#       - reopened
+#       - opened
 
-    steps:
-      - name: Commit on Telegram
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          format: markdown
-          disable_web_page_preview: true
-          message: |
-            New Issue ([#${{ github.event.issue.number }}](${{ github.event.issue.html_url }})) opened by [#${{ github.event.issue.user.login }}](${{ github.event.issue.user.html_url }}).
-            Issue: ${{ github.event.issue.title }}
+# jobs:
+#   notify:
+#     runs-on: ubuntu-latest
+#     permissions:
+#       issues: read
 
-    
+#     steps:
+#       - name: Commit on Telegram
+#         uses: appleboy/telegram-action@master
+#         with:
+#           to: ${{ secrets.TELEGRAM_CHAT_ID }}
+#           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+#           format: markdown
+#           disable_web_page_preview: true
+#           message: |
+#             New Issue ([#${{ github.event.issue.number }}](${{ github.event.issue.html_url }})) opened by [#${{ github.event.issue.user.login }}](${{ github.event.issue.user.html_url }}).
+#             Issue: ${{ github.event.issue.title }}
+
