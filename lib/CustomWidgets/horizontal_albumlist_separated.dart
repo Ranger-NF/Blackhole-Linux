@@ -71,9 +71,12 @@ class HorizontalAlbumsListSeparated extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool rotated =
         MediaQuery.of(context).size.height < MediaQuery.of(context).size.width;
+    final bool biggerScreen = MediaQuery.of(context).size.width > 1050;
     final double portion = (songsList.length <= 4) ? 1.0 : 0.875;
     final double listSize = rotated
-        ? MediaQuery.of(context).size.width * portion / 2
+        ? biggerScreen
+            ? MediaQuery.of(context).size.width * portion / 3
+            : MediaQuery.of(context).size.width * portion / 2
         : MediaQuery.of(context).size.width * portion;
     return SizedBox(
       height: songsList.length < 4 ? songsList.length * 74 : 74 * 4,
@@ -110,27 +113,30 @@ class HorizontalAlbumsListSeparated extends StatelessWidget {
                         borderRadius: BorderRadius.circular(7.0),
                       ),
                       clipBehavior: Clip.antiAlias,
-                      child: CachedNetworkImage(
-                        fit: BoxFit.cover,
-                        errorWidget: (context, _, __) => const Image(
+                      child: SizedBox.square(
+                        dimension: 55.0,
+                        child: CachedNetworkImage(
                           fit: BoxFit.cover,
-                          image: AssetImage('assets/cover.jpg'),
-                        ),
-                        imageUrl: getImageUrl(item['image'].toString()),
-                        placeholder: (context, url) => Image(
-                          fit: BoxFit.cover,
-                          image: (item['type'] == 'playlist' ||
-                                  item['type'] == 'album')
-                              ? const AssetImage(
-                                  'assets/album.png',
-                                )
-                              : item['type'] == 'artist'
-                                  ? const AssetImage(
-                                      'assets/artist.png',
-                                    )
-                                  : const AssetImage(
-                                      'assets/cover.jpg',
-                                    ),
+                          errorWidget: (context, _, __) => const Image(
+                            fit: BoxFit.cover,
+                            image: AssetImage('assets/cover.jpg'),
+                          ),
+                          imageUrl: getImageUrl(item['image'].toString()),
+                          placeholder: (context, url) => Image(
+                            fit: BoxFit.cover,
+                            image: (item['type'] == 'playlist' ||
+                                    item['type'] == 'album')
+                                ? const AssetImage(
+                                    'assets/album.png',
+                                  )
+                                : item['type'] == 'artist'
+                                    ? const AssetImage(
+                                        'assets/artist.png',
+                                      )
+                                    : const AssetImage(
+                                        'assets/cover.jpg',
+                                      ),
+                          ),
                         ),
                       ),
                     ),

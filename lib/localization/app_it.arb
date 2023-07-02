@@ -41,7 +41,7 @@
   "@year": {},
   "yes": "Sì",
   "@yes": {},
-  "yesReplace": "Sì, ma sostituisci il vecchio",
+  "yesReplace": "Sì, ma sostituisce il vecchio",
   "@yesReplace": {},
   "willPlayNext": "viene poi giocato",
   "@willPlayNext": {},
@@ -686,5 +686,13 @@
   "compactNotificationButtonsSub": "Pulsanti da mostrare nella visualizzazione compatta delle notifiche",
   "@compactNotificationButtonsSub": {},
   "compactNotificationButtons": "Pulsanti di notifica compatti",
-  "@compactNotificationButtons": {}
+  "@compactNotificationButtons": {},
+  "blacklistHomeSectionsConfirm": "Sei sicuro di voler inserire nella blacklist questa sezione? Una volta inserito nella blacklist, non verrà mostrato nella schermata iniziale",
+  "@blacklistHomeSectionsConfirm": {},
+  "blacklistHomeSections": "Inserisci nella blacklist questa sezione",
+  "@blacklistHomeSections": {},
+  "compactNotificationButtonsHeader": "È possibile selezionare fino a 3 pulsanti",
+  "@compactNotificationButtonsHeader": {},
+  "folders": "Cartelle",
+  "@folders": {}
 }

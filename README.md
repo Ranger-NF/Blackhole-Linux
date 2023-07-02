@@ -1,39 +1,19 @@
 ![Repo Banner](https://user-images.githubusercontent.com/87353286/144381080-faf8e557-7909-43a1-a8e2-208936e5a8f8.png)
 
-### ⚠️ NOTE: This is an outdated fork of [BlackHole](https://github.com/Sangwan5688/BlackHole) to implement support for Linux system
-
-# BlackHole
+# BlackHole For Linux
 
 An Open-Source Music Player App for all your needs!
 
-[![made-with-flutter](https://img.shields.io/badge/Made%20with-Flutter-1f425f.svg)](https://flutter.dev/) ![Release](https://img.shields.io/github/v/release/Sangwan5688/BlackHole) ![Downloads](https://img.shields.io/github/downloads/Sangwan5688/BlackHole/total)
-[![Build](https://github.com/Sangwan5688/BlackHole/actions/workflows/flutter.yml/badge.svg)](https://github.com/Sangwan5688/BlackHole/actions/workflows/flutter.yml)
+### [Android Version of BlackHole](https://github.com/Sangwan5688/BlackHole) (Upstream)
+
+[![made-with-flutter](https://img.shields.io/badge/Made%20with-Flutter-1f425f.svg)](https://flutter.dev/)
 [![Translation-Status](https://hosted.weblate.org/widgets/blackhole/-/translations/svg-badge.svg)](https://hosted.weblate.org/engage/blackhole/)
 
 ### Don't forget to :star: the repo
 
-[![GitHub stars](https://img.shields.io/github/stars/Sangwan5688/BlackHole.svg?style=social&label=Star)](https://github.com//Sangwan5688/BlackHole) ![GitHub forks](https://img.shields.io/github/forks/Sangwan5688/BlackHole.svg?style=social&label=Forks) ![GitHub followers](https://img.shields.io/github/followers/Sangwan5688.svg?style=social&label=Follow)
-
-## Download
-
-[<img src="get_website.png"
-     alt="Download from Website"
-     height="90">](https://sangwan5688.github.io/download/)
-[<img src="get_github.png"
-     alt="Download from GitHub"
-     height="90">](https://github.com/Sangwan5688/BlackHole/releases)
-[<img src="get_telegram.png"
-     alt="Join Telegram Channel"
-     height="90">](https://t.me/blackhole_official)
-[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-     alt="Get it on F-Droid"
-     height="90">](https://f-droid.org/packages/com.shadow.blackhole/)
-[<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png"
-     alt="Get it on IzzyDroid"
-     height="90">](https://android.izzysoft.de/repo/apk/com.shadow.blackhole)
-
 ## Translations
 
+- [Turkish :tr:](/README.TR.md)
 - [Spanish :es:](/README.ES.md)
 - [Russian :ru:](/README.RU.md)
 - [French :fr:](/README.FR.md)

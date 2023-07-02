@@ -26,13 +26,15 @@ import 'package:blackhole/CustomWidgets/snackbar.dart';
 import 'package:blackhole/CustomWidgets/textinput_dialog.dart';
 import 'package:blackhole/Helpers/backup_restore.dart';
 import 'package:blackhole/Helpers/config.dart';
-import 'package:blackhole/Helpers/countrycodes.dart';
+import 'package:blackhole/Helpers/github.dart';
 import 'package:blackhole/Helpers/picker.dart';
-import 'package:blackhole/Helpers/supabase.dart';
+import 'package:blackhole/Helpers/update.dart';
 import 'package:blackhole/Screens/Home/saavn.dart' as home_screen;
 import 'package:blackhole/Screens/Settings/player_gradient.dart';
 import 'package:blackhole/Screens/Top Charts/top.dart' as top_screen;
 import 'package:blackhole/Services/ext_storage_provider.dart';
+import 'package:blackhole/constants/countrycodes.dart';
+import 'package:blackhole/constants/languagecodes.dart';
 import 'package:blackhole/main.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
@@ -71,8 +73,10 @@ class _SettingPageState extends State<SettingPage>
       .get('includedExcludedPaths', defaultValue: []) as List;
   List blacklistedHomeSections = Hive.box('settings')
       .get('blacklistedHomeSections', defaultValue: []) as List;
-  String streamingQuality = Hive.box('settings')
+  String streamingMobileQuality = Hive.box('settings')
       .get('streamingQuality', defaultValue: '96 kbps') as String;
+  String streamingWifiQuality = Hive.box('settings')
+      .get('streamingWifiQuality', defaultValue: '320 kbps') as String;
   String ytQuality =
       Hive.box('settings').get('ytQuality', defaultValue: 'Low') as String;
   String downloadQuality = Hive.box('settings')
@@ -152,25 +156,6 @@ class _SettingPageState extends State<SettingPage>
     setState(
       () {},
     );
-  }
-
-  bool compareVersion(String latestVersion, String currentVersion) {
-    bool update = false;
-    final List<String> latestList = latestVersion.split('.');
-    final List<String> currentList = currentVersion.split('.');
-
-    for (int i = 0; i < latestList.length; i++) {
-      try {
-        if (int.parse(latestList[i]) > int.parse(currentList[i])) {
-          update = true;
-          break;
-        }
-      } catch (e) {
-        break;
-      }
-    }
-
-    return update;
   }
 
   @override
@@ -264,7 +249,7 @@ class _SettingPageState extends State<SettingPage>
                           ),
                           keyName: 'darkMode',
                           defaultValue: true,
-                          onChanged: (bool val, Box box) {
+                          onChanged: ({required bool val, required Box box}) {
                             box.put(
                               'useSystemTheme',
                               false,
@@ -285,7 +270,7 @@ class _SettingPageState extends State<SettingPage>
                           ),
                           keyName: 'useSystemTheme',
                           defaultValue: true,
-                          onChanged: (bool val, Box box) {
+                          onChanged: ({required bool val, required Box box}) {
                             currentTheme.switchTheme(useSystemTheme: val);
                             switchToCustomTheme();
                           },
@@ -1864,7 +1849,7 @@ class _SettingPageState extends State<SettingPage>
                           ),
                           keyName: 'showPlaylist',
                           defaultValue: true,
-                          onChanged: (val, box) {
+                          onChanged: ({required bool val, required Box box}) {
                             widget.callback!();
                           },
                         ),
@@ -1884,7 +1869,7 @@ class _SettingPageState extends State<SettingPage>
                           ),
                           keyName: 'showRecent',
                           defaultValue: true,
-                          onChanged: (val, box) {
+                          onChanged: ({required bool val, required Box box}) {
                             widget.callback!();
                           },
                         ),
@@ -2215,7 +2200,7 @@ class _SettingPageState extends State<SettingPage>
                           ),
                           onTap: () {},
                           trailing: DropdownButton(
-                            value: streamingQuality,
+                            value: streamingMobileQuality,
                             style: TextStyle(
                               fontSize: 12,
                               color:
@@ -2226,9 +2211,52 @@ class _SettingPageState extends State<SettingPage>
                               if (newValue != null) {
                                 setState(
                                   () {
-                                    streamingQuality = newValue;
+                                    streamingMobileQuality = newValue;
                                     Hive.box('settings')
                                         .put('streamingQuality', newValue);
+                                  },
+                                );
+                              }
+                            },
+                            items: <String>['96 kbps', '160 kbps', '320 kbps']
+                                .map<DropdownMenuItem<String>>((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                          ),
+                          dense: true,
+                        ),
+                        ListTile(
+                          title: Text(
+                            AppLocalizations.of(
+                              context,
+                            )!
+                                .streamWifiQuality,
+                          ),
+                          subtitle: Text(
+                            AppLocalizations.of(
+                              context,
+                            )!
+                                .streamWifiQualitySub,
+                          ),
+                          onTap: () {},
+                          trailing: DropdownButton(
+                            value: streamingWifiQuality,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color:
+                                  Theme.of(context).textTheme.bodyLarge!.color,
+                            ),
+                            underline: const SizedBox(),
+                            onChanged: (String? newValue) {
+                              if (newValue != null) {
+                                setState(
+                                  () {
+                                    streamingWifiQuality = newValue;
+                                    Hive.box('settings')
+                                        .put('streamingWifiQuality', newValue);
                                   },
                                 );
                               }
@@ -2758,7 +2786,7 @@ class _SettingPageState extends State<SettingPage>
                                     lang = newValue;
                                     MyApp.of(context).setLocale(
                                       Locale.fromSubtags(
-                                        languageCode: ConstantCodes
+                                        languageCode: LanguageCodes
                                                 .languageCodes[newValue] ??
                                             'en',
                                       ),
@@ -2768,7 +2796,7 @@ class _SettingPageState extends State<SettingPage>
                                 );
                               }
                             },
-                            items: ConstantCodes.languageCodes.keys
+                            items: LanguageCodes.languageCodes.keys
                                 .map<DropdownMenuItem<String>>((language) {
                               return DropdownMenuItem<String>(
                                 value: language,
@@ -3177,7 +3205,7 @@ class _SettingPageState extends State<SettingPage>
                           keyName: 'useProxy',
                           defaultValue: false,
                           isThreeLine: true,
-                          onChanged: (bool val, Box box) {
+                          onChanged: ({required bool val, required Box box}) {
                             useProxy = val;
                             setState(
                               () {},
@@ -3798,10 +3826,10 @@ class _SettingPageState extends State<SettingPage>
                               noAction: true,
                             );
 
-                            SupaBase().getUpdate().then(
-                              (Map value) async {
+                            GitHub.getLatestVersion().then(
+                              (String latestVersion) async {
                                 if (compareVersion(
-                                  value['LatestVersion'].toString(),
+                                  latestVersion,
                                   appVersion!,
                                 )) {
                                   List? abis = await Hive.box('settings')
@@ -3829,33 +3857,12 @@ class _SettingPageState extends State<SettingPage>
                                           AppLocalizations.of(context)!.update,
                                       onPressed: () {
                                         Navigator.pop(context);
-                                        if (abis!.contains('arm64-v8a')) {
-                                          launchUrl(
-                                            Uri.parse(
-                                              value['arm64-v8a'] as String,
-                                            ),
-                                            mode:
-                                                LaunchMode.externalApplication,
-                                          );
-                                        } else {
-                                          if (abis.contains('armeabi-v7a')) {
-                                            launchUrl(
-                                              Uri.parse(
-                                                value['armeabi-v7a'] as String,
-                                              ),
-                                              mode: LaunchMode
-                                                  .externalApplication,
-                                            );
-                                          } else {
-                                            launchUrl(
-                                              Uri.parse(
-                                                value['universal'] as String,
-                                              ),
-                                              mode: LaunchMode
-                                                  .externalApplication,
-                                            );
-                                          }
-                                        }
+                                        launchUrl(
+                                          Uri.parse(
+                                            'https://sangwan5688.github.io/download/',
+                                          ),
+                                          mode: LaunchMode.externalApplication,
+                                        );
                                       },
                                     ),
                                   );
@@ -4274,7 +4281,7 @@ class BoxSwitchTile extends StatelessWidget {
   final String keyName;
   final bool defaultValue;
   final bool? isThreeLine;
-  final Function(bool, Box box)? onChanged;
+  final Function({required bool val, required Box box})? onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -4291,7 +4298,7 @@ class BoxSwitchTile extends StatelessWidget {
               defaultValue,
           onChanged: (val) {
             box.put(keyName, val);
-            onChanged?.call(val, box);
+            onChanged?.call(val: val, box: box);
           },
         );
       },
@@ -4303,7 +4310,7 @@ class SpotifyCountry {
   Future<String> changeCountry({required BuildContext context}) async {
     String region =
         Hive.box('settings').get('region', defaultValue: 'India') as String;
-    if (!ConstantCodes.localChartCodes.containsKey(region)) {
+    if (!CountryCodes.localChartCodes.containsKey(region)) {
       region = 'India';
     }
 
@@ -4312,7 +4319,7 @@ class SpotifyCountry {
       backgroundColor: Colors.transparent,
       context: context,
       builder: (BuildContext context) {
-        const Map<String, String> codes = ConstantCodes.localChartCodes;
+        const Map<String, String> codes = CountryCodes.localChartCodes;
         final List<String> countries = codes.keys.toList();
         return BottomGradientContainer(
           borderRadius: BorderRadius.circular(

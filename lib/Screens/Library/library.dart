@@ -52,7 +52,7 @@ class _LibraryPageState extends State<LibraryPage> {
           backgroundColor: Colors.transparent,
           elevation: 0,
           automaticallyImplyLeading: false,
-          leading: (rotated && screenWidth < 1050)
+          leading: rotated
               ? null
               : Builder(
                   builder: (BuildContext context) {
@@ -102,23 +102,23 @@ class _LibraryPageState extends State<LibraryPage> {
             );
           },
         ),
-        if (!Platform.isIOS)
-          LibraryTile(
-            title: AppLocalizations.of(context)!.myMusic,
-            icon: MdiIcons.folderMusic,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => (Platform.isWindows || Platform.isLinux)
-                      ? const DownloadedSongsDesktop()
-                      : const DownloadedSongs(
-                          showPlaylists: true,
-                        ),
-                ),
-              );
-            },
-          ),
+        LibraryTile(
+          title: AppLocalizations.of(context)!.myMusic,
+          icon: MdiIcons.folderMusic,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    (Platform.isWindows || Platform.isLinux || Platform.isMacOS)
+                        ? const DownloadedSongsDesktop()
+                        : const DownloadedSongs(
+                            showPlaylists: true,
+                          ),
+              ),
+            );
+          },
+        ),
         LibraryTile(
           title: AppLocalizations.of(context)!.downs,
           icon: Icons.download_done_rounded,

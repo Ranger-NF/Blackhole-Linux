@@ -18,12 +18,10 @@
  */
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:blackhole/Helpers/format.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart';
-import 'package:http/io_client.dart';
 import 'package:logging/logging.dart';
 
 class SaavnAPI {
@@ -74,16 +72,27 @@ class SaavnAPI {
     headers = {'cookie': languageHeader, 'Accept': '*/*'};
 
     if (useProxy && settingsBox.get('useProxy', defaultValue: false) as bool) {
-      final proxyIP = settingsBox.get('proxyIp');
-      final proxyPort = settingsBox.get('proxyPort');
-      final HttpClient httpClient = HttpClient();
-      httpClient.findProxy = (uri) {
-        return 'PROXY $proxyIP:$proxyPort;';
-      };
-      httpClient.badCertificateCallback =
-          (X509Certificate cert, String host, int port) => Platform.isAndroid;
-      final IOClient myClient = IOClient(httpClient);
-      return myClient.get(url, headers: headers);
+      final String proxyIP = settingsBox.get('proxyIp').toString();
+      // final proxyPort = settingsBox.get('proxyPort');
+      // final HttpClient httpClient = HttpClient();
+      // httpClient.findProxy = (uri) {
+      //   return 'PROXY $proxyIP:$proxyPort;';
+      // };
+      // httpClient.badCertificateCallback =
+      //     (X509Certificate cert, String host, int port) => Platform.isAndroid;
+      // final IOClient myClient = IOClient(httpClient);
+      // return myClient.get(url, headers: headers);
+      final proxyHeaders = headers;
+      proxyHeaders['X-FORWARDED-FOR'] = proxyIP;
+      return get(url, headers: proxyHeaders).onError((error, stackTrace) {
+        return Response(
+          {
+            'status': 'failure',
+            'error': error.toString(),
+          }.toString(),
+          404,
+        );
+      });
     }
     return get(url, headers: headers).onError((error, stackTrace) {
       return Response(
@@ -187,9 +196,13 @@ class SaavnAPI {
   Future<List> getReco(String pid) async {
     final String params = "${endpoints['getReco']}&pid=$pid";
     final res = await getResponse(params);
-    if (res.statusCode == 200) {
+    if (res.statusCode == 200 && res.body.isNotEmpty) {
       final List getMain = json.decode(res.body) as List;
       return FormatResponse.formatSongsResponse(getMain, 'song');
+    } else {
+      Logger.root.severe(
+        'Error in getReco returned status: ${res.statusCode}, response: ${res.body}',
+      );
     }
     return List.empty();
   }
@@ -428,18 +441,20 @@ class SaavnAPI {
       final res = await getResponse(params);
       if (res.statusCode == 200) {
         final getMain = json.decode(res.body);
-        final List responseList = getMain['list'] as List;
-        return {
-          'songs':
-              await FormatResponse.formatSongsResponse(responseList, 'album'),
-          'error': '',
-        };
-      } else {
-        return {
-          'songs': List.empty(),
-          'error': res.body,
-        };
+        if (getMain['list'] != '') {
+          final List responseList = getMain['list'] as List;
+          return {
+            'songs':
+                await FormatResponse.formatSongsResponse(responseList, 'album'),
+            'error': '',
+          };
+        }
       }
+      Logger.root.severe('Songs not found in fetchAlbumSongs: ${res.body}');
+      return {
+        'songs': List.empty(),
+        'error': '',
+      };
     } catch (e) {
       Logger.root.severe('Error in fetchAlbumSongs: $e');
       return {

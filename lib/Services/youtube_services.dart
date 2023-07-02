@@ -21,6 +21,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:html_unescape/html_unescape_small.dart';
 import 'package:http/http.dart';
 import 'package:logging/logging.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
@@ -181,16 +182,19 @@ class YouTubeServices {
 
   Future<List> getSearchSuggestions({required String query}) async {
     const baseUrl =
-        // 'https://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=';
-        'https://invidious.snopyta.org/api/v1/search/suggestions?q=';
+        'https://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=';
+    // 'https://invidious.snopyta.org/api/v1/search/suggestions?q=';
     final Uri link = Uri.parse(baseUrl + query);
     try {
       final Response response = await get(link, headers: headers);
       if (response.statusCode != 200) {
         return [];
       }
-      final Map res = jsonDecode(response.body) as Map;
-      return res['suggestions'] as List;
+      final unescape = HtmlUnescape();
+      // final Map res = jsonDecode(response.body) as Map;
+      final List res = (jsonDecode(response.body) as List)[1] as List;
+      // return (res['suggestions'] as List).map((e) => unescape.convert(e.toString())).toList();
+      return res.map((e) => unescape.convert(e.toString())).toList();
     } catch (e) {
       Logger.root.severe('Error in getSearchSuggestions: $e');
       return [];
@@ -546,7 +550,7 @@ class YouTubeServices {
         await yt.videos.streamsClient.getManifest(video.id);
     final List<AudioOnlyStreamInfo> sortedStreamInfo =
         manifest.audioOnly.sortByBitrate();
-    if (Platform.isIOS) {
+    if (Platform.isIOS || Platform.isMacOS) {
       final List<AudioOnlyStreamInfo> m4aStreams = sortedStreamInfo
           .where((element) => element.audioCodec.contains('mp4'))
           .toList();

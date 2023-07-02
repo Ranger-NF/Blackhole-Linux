@@ -63,7 +63,7 @@ class PlayerInvoke {
     }
 
     if (!fromMiniplayer) {
-      if (!Platform.isAndroid) {
+      if (Platform.isIOS) {
         // Don't know why but it fixes the playback issue with iOS Side
         audioHandler.stop();
       }
@@ -99,7 +99,7 @@ class PlayerInvoke {
 
     final String playAlbum = response.album!;
     final int playDuration = response.duration ?? 180000;
-    final String imagePath = '${tempDir.path}/${response.displayNameWOExt}.jpg';
+    final String imagePath = '${tempDir.path}/${response.displayNameWOExt}.png';
 
     final MediaItem tempDict = MediaItem(
       id: response.id.toString(),

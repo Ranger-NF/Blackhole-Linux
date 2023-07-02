@@ -55,21 +55,25 @@ Future<String?> retriveAccessToken() async {
   }
 }
 
-Future<void> callSpotifyFunction(Function(String accessToken)? function) async {
+Future<void> callSpotifyFunction({
+  required Function(String accessToken)? function,
+  bool forceSign = true,
+}) async {
   final String? accessToken = await retriveAccessToken();
   if (accessToken != null && function != null) {
     return await function.call(accessToken);
   }
-  if (accessToken == null) {
+  if (accessToken == null && forceSign) {
     launchUrl(
       Uri.parse(
         SpotifyApi().requestAuthorization(),
       ),
       mode: LaunchMode.externalApplication,
     );
-    AppLinks(
-      onAppLink: (Uri uri, String link) async {
-        closeInAppWebView();
+    final appLinks = AppLinks();
+    appLinks.allUriLinkStream.listen(
+      (uri) async {
+        final link = uri.toString();
         if (link.contains('code=')) {
           final code = link.split('code=')[1];
           Hive.box('settings').put('spotifyAppCode', code);

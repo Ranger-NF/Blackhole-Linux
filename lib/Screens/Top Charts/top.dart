@@ -21,11 +21,11 @@ import 'package:app_links/app_links.dart';
 import 'package:blackhole/APIs/spotify_api.dart';
 import 'package:blackhole/CustomWidgets/custom_physics.dart';
 import 'package:blackhole/CustomWidgets/empty_screen.dart';
-import 'package:blackhole/Helpers/countrycodes.dart';
 import 'package:blackhole/Helpers/spotify_helper.dart';
 // import 'package:blackhole/Helpers/countrycodes.dart';
 import 'package:blackhole/Screens/Search/search.dart';
 import 'package:blackhole/Screens/Settings/setting.dart';
+import 'package:blackhole/constants/countrycodes.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -107,7 +107,7 @@ class _TopChartsState extends State<TopCharts>
           backgroundColor: Colors.transparent,
           elevation: 0,
           automaticallyImplyLeading: false,
-          leading: (rotated && screenWidth < 1050)
+          leading: rotated
               ? null
               : Builder(
                   builder: (BuildContext context) {
@@ -163,10 +163,10 @@ class _TopChartsState extends State<TopCharts>
 }
 
 Future<List> getChartDetails(String accessToken, String type) async {
-  final String globalPlaylistId = ConstantCodes.localChartCodes['Global']!;
-  final String localPlaylistId = ConstantCodes.localChartCodes.containsKey(type)
-      ? ConstantCodes.localChartCodes[type]!
-      : ConstantCodes.localChartCodes['India']!;
+  final String globalPlaylistId = CountryCodes.localChartCodes['Global']!;
+  final String localPlaylistId = CountryCodes.localChartCodes.containsKey(type)
+      ? CountryCodes.localChartCodes[type]!
+      : CountryCodes.localChartCodes['India']!;
   final String playlistId =
       type == 'Global' ? globalPlaylistId : localPlaylistId;
   final List data = [];
@@ -204,9 +204,10 @@ Future<void> scrapData(String type, {bool signIn = false}) async {
       ),
       mode: LaunchMode.externalApplication,
     );
-    AppLinks(
-      onAppLink: (Uri uri, String link) async {
-        closeInAppWebView();
+    final appLinks = AppLinks();
+    appLinks.allUriLinkStream.listen(
+      (uri) async {
+        final link = uri.toString();
         if (link.contains('code=')) {
           final code = link.split('code=')[1];
           Hive.box('settings').put('spotifyAppCode', code);
