@@ -22,7 +22,8 @@ import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:blackhole/Helpers/config.dart';
-import 'package:blackhole/Helpers/countrycodes.dart';
+import 'package:blackhole/Helpers/handle_native.dart';
+import 'package:blackhole/Helpers/import_export_playlist.dart';
 import 'package:blackhole/Helpers/logging.dart';
 import 'package:blackhole/Helpers/route_handler.dart';
 import 'package:blackhole/Screens/About/about.dart';
@@ -35,8 +36,10 @@ import 'package:blackhole/Screens/Library/stats.dart';
 import 'package:blackhole/Screens/Login/auth.dart';
 import 'package:blackhole/Screens/Login/pref.dart';
 import 'package:blackhole/Screens/Player/audioplayer.dart';
-import 'package:blackhole/Screens/Settings/setting.dart';
+import 'package:blackhole/Screens/Settings/new_settings_page.dart';
 import 'package:blackhole/Services/audio_service.dart';
+import 'package:blackhole/constants/constants.dart';
+import 'package:blackhole/constants/languagecodes.dart';
 import 'package:blackhole/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -45,7 +48,9 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:logging/logging.dart';
+import 'package:metadata_god/metadata_god.dart';
 import 'package:path_provider/path_provider.dart';
 
 // import 'package:receive_sharing_intent/receive_sharing_intent.dart';
@@ -59,12 +64,12 @@ Future<void> main() async {
   } else {
     await Hive.initFlutter();
   }
-  await openHiveBox('settings');
-  await openHiveBox('downloads');
-  await openHiveBox('stats');
-  await openHiveBox('Favorite Songs');
-  await openHiveBox('cache', limit: true);
-  await openHiveBox('ytlinkcache', limit: true);
+  for (final box in hiveBoxes) {
+    await openHiveBox(
+      box['name'].toString(),
+      limit: box['limit'] as bool? ?? false,
+    );
+  }
   if (Platform.isAndroid) {
     setOptimalDisplayMode();
   }
@@ -94,7 +99,7 @@ Future<void> setOptimalDisplayMode() async {
 
 Future<void> startService() async {
   await initializeLogging();
-
+  MetadataGod.initialize();
   final AudioPlayerHandler audioHandler = await AudioService.init(
     builder: () => AudioPlayerHandlerImpl(),
     config: AudioServiceConfig(
@@ -133,10 +138,37 @@ Future<void> openHiveBox(String boxName, {bool limit = false}) async {
   }
 }
 
+/// Called when Doing Background Work initiated from Widget
+@pragma('vm:entry-point')
+Future<void> backgroundCallback(Uri? data) async {
+  if (data?.host == 'controls') {
+    if (data?.path == '/play') {
+      // audioHandler?.play();
+    } else if (data?.path == '/pause') {
+      // audioHandler?.pause();
+    } else if (data?.path == '/skipNext') {
+      // audioHandler?.skipToNext();
+    } else if (data?.path == '/skipPrevious') {
+      // audioHandler?.skipToPrevious();
+    }
+
+    // await HomeWidget.saveWidgetData<String>(
+    //   'title',
+    //   audioHandler?.mediaItem.value?.title,
+    // );
+    // await HomeWidget.saveWidgetData<String>(
+    //   'subtitle',
+    //   audioHandler?.mediaItem.value?.displaySubtitle,
+    // );
+    // await HomeWidget.updateWidget(name: 'BlackHoleMusicWidget');
+  }
+}
+
 class MyApp extends StatefulWidget {
   @override
   _MyAppState createState() => _MyAppState();
 
+  // ignore: unreachable_from_main
   static _MyAppState of(BuildContext context) =>
       context.findAncestorStateOfType<_MyAppState>()!;
 }
@@ -157,13 +189,15 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    HomeWidget.setAppGroupId('com.shadow.blackhole');
+    HomeWidget.registerBackgroundCallback(backgroundCallback);
     final String systemLangCode = Platform.localeName.substring(0, 2);
-    if (ConstantCodes.languageCodes.values.contains(systemLangCode)) {
+    if (LanguageCodes.languageCodes.values.contains(systemLangCode)) {
       _locale = Locale(systemLangCode);
     } else {
       final String lang =
           Hive.box('settings').get('lang', defaultValue: 'English') as String;
-      _locale = Locale(ConstantCodes.languageCodes[lang] ?? 'en');
+      _locale = Locale(LanguageCodes.languageCodes[lang] ?? 'en');
     }
 
     AppTheme.currentTheme.addListener(() {
@@ -258,69 +292,76 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(
-      SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        systemNavigationBarColor: AppTheme.themeMode == ThemeMode.dark
-            ? Colors.black38
-            : Colors.white,
-        statusBarIconBrightness: AppTheme.themeMode == ThemeMode.dark
-            ? Brightness.light
-            : Brightness.dark,
-        systemNavigationBarIconBrightness: AppTheme.themeMode == ThemeMode.dark
-            ? Brightness.light
-            : Brightness.dark,
-      ),
-    );
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
-
-    return MaterialApp(
-      title: 'BlackHole',
-      restorationScopeId: 'blackhole',
-      debugShowCheckedModeBanner: false,
-      themeMode: AppTheme.themeMode,
-      theme: AppTheme.lightTheme(
-        context: context,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: Colors.transparent,
+        statusBarIconBrightness: AppTheme.themeMode == ThemeMode.system
+            ? MediaQuery.platformBrightnessOf(context) == Brightness.dark
+                ? Brightness.light
+                : Brightness.dark
+            : AppTheme.themeMode == ThemeMode.dark
+                ? Brightness.light
+                : Brightness.dark,
+        systemNavigationBarIconBrightness:
+            AppTheme.themeMode == ThemeMode.system
+                ? MediaQuery.platformBrightnessOf(context) == Brightness.dark
+                    ? Brightness.light
+                    : Brightness.dark
+                : AppTheme.themeMode == ThemeMode.dark
+                    ? Brightness.light
+                    : Brightness.dark,
       ),
-      darkTheme: AppTheme.darkTheme(
-        context: context,
+      child: MaterialApp(
+        title: 'BlackHole',
+        restorationScopeId: 'blackhole',
+        debugShowCheckedModeBanner: false,
+        themeMode: AppTheme.themeMode,
+        theme: AppTheme.lightTheme(
+          context: context,
+        ),
+        darkTheme: AppTheme.darkTheme(
+          context: context,
+        ),
+        locale: _locale,
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: LanguageCodes.languageCodes.entries
+            .map((languageCode) => Locale(languageCode.value, ''))
+            .toList(),
+        routes: {
+          '/': (context) => initialFuntion(),
+          '/pref': (context) => const PrefScreen(),
+          '/setting': (context) => const NewSettingsPage(),
+          '/about': (context) => AboutScreen(),
+          '/playlists': (context) => PlaylistScreen(),
+          '/nowplaying': (context) => NowPlaying(),
+          '/recent': (context) => RecentlyPlayed(),
+          '/downloads': (context) => const Downloads(),
+          '/stats': (context) => const Stats(),
+        },
+        navigatorKey: navigatorKey,
+        onGenerateRoute: (RouteSettings settings) {
+          if (settings.name == '/player') {
+            return PageRouteBuilder(
+              opaque: false,
+              pageBuilder: (_, __, ___) => const PlayScreen(),
+            );
+          }
+          return HandleRoute.handleRoute(settings.name);
+        },
       ),
-      locale: _locale,
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: ConstantCodes.languageCodes.entries
-          .map((languageCode) => Locale(languageCode.value, ''))
-          .toList(),
-      routes: {
-        '/': (context) => initialFuntion(),
-        '/pref': (context) => const PrefScreen(),
-        '/setting': (context) => const SettingPage(),
-        '/about': (context) => AboutScreen(),
-        '/playlists': (context) => PlaylistScreen(),
-        '/nowplaying': (context) => NowPlaying(),
-        '/recent': (context) => RecentlyPlayed(),
-        '/downloads': (context) => const Downloads(),
-        '/stats': (context) => const Stats(),
-      },
-      navigatorKey: navigatorKey,
-      onGenerateRoute: (RouteSettings settings) {
-        if (settings.name == '/player') {
-          return PageRouteBuilder(
-            opaque: false,
-            pageBuilder: (_, __, ___) => const PlayScreen(),
-          );
-        }
-        return HandleRoute.handleRoute(settings.name);
-      },
     );
   }
 }

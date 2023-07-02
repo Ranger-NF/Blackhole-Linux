@@ -33,7 +33,7 @@ An Open-Source Music Player App for all your needs!
      height="90">](https://android.izzysoft.de/repo/apk/com.shadow.blackhole)
 
 ## Translations
-
+- [Turkish :tr:](/README.TR.md)
 - [Spanish :es:](/README.ES.md)
 - [Russian :ru:](/README.RU.md)
 - [French :fr:](/README.FR.md)

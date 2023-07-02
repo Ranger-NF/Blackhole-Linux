@@ -20,7 +20,7 @@
 import 'package:blackhole/CustomWidgets/empty_screen.dart';
 import 'package:blackhole/CustomWidgets/gradient_containers.dart';
 import 'package:blackhole/CustomWidgets/miniplayer.dart';
-import 'package:blackhole/CustomWidgets/search_bar.dart';
+import 'package:blackhole/CustomWidgets/search_bar.dart' as searchbar;
 import 'package:blackhole/CustomWidgets/snackbar.dart';
 import 'package:blackhole/CustomWidgets/song_tile_trailing_menu.dart';
 import 'package:blackhole/Screens/YouTube/youtube_artist.dart';
@@ -58,8 +58,6 @@ class _YouTubeSearchPageState extends State<YouTubeSearchPage> {
       Hive.box('settings').get('search', defaultValue: []) as List;
   bool searchYtMusic =
       Hive.box('settings').get('searchYtMusic', defaultValue: true) as bool;
-  // List ytSearch =
-  // Hive.box('settings').get('ytSearch', defaultValue: []) as List;
   // bool showHistory =
   // Hive.box('settings').get('showHistory', defaultValue: true) as bool;
   final TextEditingController _controller = TextEditingController();
@@ -120,7 +118,7 @@ class _YouTubeSearchPageState extends State<YouTubeSearchPage> {
               child: Scaffold(
                 resizeToAvoidBottomInset: false,
                 backgroundColor: Colors.transparent,
-                body: SearchBar(
+                body: searchbar.SearchBar(
                   isYt: true,
                   controller: _controller,
                   liveSearch: true,
@@ -290,10 +288,20 @@ class _YouTubeSearchPageState extends State<YouTubeSearchPage> {
                                                       setState(
                                                         () {
                                                           fetched = false;
-                                                          query = searchHistory[
-                                                                  index]
+                                                          query = searchHistory
+                                                              .removeAt(index)
                                                               .toString()
                                                               .trim();
+                                                          searchHistory.insert(
+                                                            0,
+                                                            query,
+                                                          );
+                                                          Hive.box('settings')
+                                                              .put(
+                                                            'search',
+                                                            searchHistory,
+                                                          );
+
                                                           _controller.text =
                                                               query;
                                                           status = false;

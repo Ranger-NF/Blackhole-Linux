@@ -27,21 +27,21 @@ import 'package:blackhole/CustomWidgets/snackbar.dart';
 import 'package:blackhole/CustomWidgets/textinput_dialog.dart';
 import 'package:blackhole/Helpers/backup_restore.dart';
 import 'package:blackhole/Helpers/downloads_checker.dart';
-import 'package:blackhole/Helpers/supabase.dart';
+import 'package:blackhole/Helpers/github.dart';
+import 'package:blackhole/Helpers/update.dart';
 import 'package:blackhole/Screens/Home/saavn.dart';
 import 'package:blackhole/Screens/Library/library.dart';
 import 'package:blackhole/Screens/LocalMusic/downed_songs.dart';
+import 'package:blackhole/Screens/LocalMusic/downed_songs_desktop.dart';
 import 'package:blackhole/Screens/Search/search.dart';
-import 'package:blackhole/Screens/Settings/setting.dart';
+import 'package:blackhole/Screens/Settings/new_settings_page.dart';
 import 'package:blackhole/Screens/Top Charts/top.dart';
 import 'package:blackhole/Screens/YouTube/youtube_home.dart';
 import 'package:blackhole/Services/ext_storage_provider.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:logging/logging.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
@@ -83,31 +83,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  bool compareVersion(String latestVersion, String currentVersion) {
-    bool update = false;
-    final List latestList = latestVersion.split('.');
-    final List currentList = currentVersion.split('.');
-
-    for (int i = 0; i < latestList.length; i++) {
-      try {
-        if (int.parse(latestList[i] as String) >
-            int.parse(currentList[i] as String)) {
-          update = true;
-          break;
-        }
-      } catch (e) {
-        Logger.root.severe('Error while comparing versions: $e');
-        break;
-      }
-    }
-    return update;
-  }
-
-  void updateUserDetails(String key, dynamic value) {
-    final userId = Hive.box('settings').get('userId') as String?;
-    SupaBase().updateUserDetails(userId, key, value);
-  }
-
   Future<bool> handleWillPop(BuildContext context) async {
     final now = DateTime.now();
     final backButtonHasNotBeenPressedOrSnackBarHasBeenClosed =
@@ -128,46 +103,27 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget checkVersion() {
-    if (!checked && Theme.of(context).platform == TargetPlatform.android) {
+    if (!checked) {
       checked = true;
-      final SupaBase db = SupaBase();
-      final DateTime now = DateTime.now();
-      final List lastLogin = now
-          .toUtc()
-          .add(const Duration(hours: 5, minutes: 30))
-          .toString()
-          .split('.')
-        ..removeLast()
-        ..join('.');
-      updateUserDetails('lastLogin', '${lastLogin[0]} IST');
-      final String offset =
-          now.timeZoneOffset.toString().replaceAll('.000000', '');
-
-      updateUserDetails(
-        'timeZone',
-        'Zone: ${now.timeZoneName}, Offset: $offset',
-      );
-
       PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
         appVersion = packageInfo.version;
-        updateUserDetails('version', packageInfo.version);
 
         if (checkUpdate) {
-          db.getUpdate().then((Map value) async {
+          GitHub.getLatestVersion().then((String version) async {
             if (compareVersion(
-              value['LatestVersion'] as String,
+              version,
               appVersion!,
             )) {
-              List? abis =
-                  await Hive.box('settings').get('supportedAbis') as List?;
+              // List? abis =
+              //     await Hive.box('settings').get('supportedAbis') as List?;
 
-              if (abis == null) {
-                final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-                final AndroidDeviceInfo androidDeviceInfo =
-                    await deviceInfo.androidInfo;
-                abis = androidDeviceInfo.supportedAbis;
-                await Hive.box('settings').put('supportedAbis', abis);
-              }
+              // if (abis == null) {
+              //   final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+              //   final AndroidDeviceInfo androidDeviceInfo =
+              //       await deviceInfo.androidInfo;
+              //   abis = androidDeviceInfo.supportedAbis;
+              //   await Hive.box('settings').put('supportedAbis', abis);
+              // }
 
               ShowSnackBar().showSnackBar(
                 context,
@@ -178,24 +134,10 @@ class _HomePageState extends State<HomePage> {
                   label: AppLocalizations.of(context)!.update,
                   onPressed: () {
                     Navigator.pop(context);
-                    if (abis!.contains('arm64-v8a')) {
-                      launchUrl(
-                        Uri.parse(value['arm64-v8a'] as String),
-                        mode: LaunchMode.externalApplication,
-                      );
-                    } else {
-                      if (abis.contains('armeabi-v7a')) {
-                        launchUrl(
-                          Uri.parse(value['armeabi-v7a'] as String),
-                          mode: LaunchMode.externalApplication,
-                        );
-                      } else {
-                        launchUrl(
-                          Uri.parse(value['universal'] as String),
-                          mode: LaunchMode.externalApplication,
-                        );
-                      }
-                    }
+                    launchUrl(
+                      Uri.parse('https://sangwan5688.github.io/download/'),
+                      mode: LaunchMode.externalApplication,
+                    );
                   },
                 ),
               );
@@ -369,44 +311,61 @@ class _HomePageState extends State<HomePage> {
                   delegate: SliverChildListDelegate(
                     [
                       ListTile(
-                        title: Text(
-                          AppLocalizations.of(context)!.home,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.secondary,
+                        title: ValueListenableBuilder(
+                          valueListenable: _selectedIndex,
+                          builder: (context, value, Widget? child) => Text(
+                            AppLocalizations.of(context)!.home,
+                            style: _selectedIndex.value == 0
+                                ? TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.secondary,
+                                  )
+                                : null,
                           ),
                         ),
                         contentPadding:
                             const EdgeInsets.symmetric(horizontal: 20.0),
-                        leading: Icon(
-                          Icons.home_rounded,
-                          color: Theme.of(context).colorScheme.secondary,
+                        leading: ValueListenableBuilder(
+                          valueListenable: _selectedIndex,
+                          builder: (context, value, Widget? child) => Icon(
+                            Icons.home_rounded,
+                            color: _selectedIndex.value == 0
+                                ? Theme.of(context).colorScheme.secondary
+                                : null,
+                          ),
                         ),
-                        selected: true,
+                        selected: _selectedIndex.value == 0,
                         onTap: () {
                           Navigator.pop(context);
+                          if (_selectedIndex.value != 0) {
+                            _onItemTapped(0);
+                          }
                         },
                       ),
-                      if (Platform.isAndroid)
-                        ListTile(
-                          title: Text(AppLocalizations.of(context)!.myMusic),
-                          contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 20.0),
-                          leading: Icon(
-                            MdiIcons.folderMusic,
-                            color: Theme.of(context).iconTheme.color,
-                          ),
-                          onTap: () {
-                            Navigator.pop(context);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const DownloadedSongs(
-                                  showPlaylists: true,
-                                ),
-                              ),
-                            );
-                          },
+                      ListTile(
+                        title: Text(AppLocalizations.of(context)!.myMusic),
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 20.0),
+                        leading: Icon(
+                          MdiIcons.folderMusic,
+                          color: Theme.of(context).iconTheme.color,
                         ),
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => (Platform.isWindows ||
+                                      Platform.isLinux ||
+                                      Platform.isMacOS)
+                                  ? const DownloadedSongsDesktop()
+                                  : const DownloadedSongs(
+                                      showPlaylists: true,
+                                    ),
+                            ),
+                          );
+                        },
+                      ),
                       ListTile(
                         title: Text(AppLocalizations.of(context)!.downs),
                         contentPadding:
@@ -434,23 +393,48 @@ class _HomePageState extends State<HomePage> {
                         },
                       ),
                       ListTile(
-                        title: Text(AppLocalizations.of(context)!.settings),
+                        title: ValueListenableBuilder(
+                          valueListenable: _selectedIndex,
+                          builder: (context, value, Widget? child) => Text(
+                            AppLocalizations.of(context)!.settings,
+                            style: sectionsToShow.contains('Settings') &&
+                                    _selectedIndex.value == 3
+                                ? TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.secondary,
+                                  )
+                                : null,
+                          ),
+                        ),
                         contentPadding:
                             const EdgeInsets.symmetric(horizontal: 20.0),
-                        leading: Icon(
-                          Icons
-                              .settings_rounded, // miscellaneous_services_rounded,
-                          color: Theme.of(context).iconTheme.color,
+                        leading: ValueListenableBuilder(
+                          valueListenable: _selectedIndex,
+                          builder: (context, value, Widget? child) => Icon(
+                            Icons
+                                .settings_rounded, // miscellaneous_services_rounded,
+                            color: sectionsToShow.contains('Settings') &&
+                                    _selectedIndex.value == 3
+                                ? Theme.of(context).colorScheme.secondary
+                                : null,
+                          ),
                         ),
+                        selected: _selectedIndex.value == 3,
                         onTap: () {
                           Navigator.pop(context);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  SettingPage(callback: callback),
-                            ),
-                          );
+                          if (sectionsToShow.contains('Settings')) {
+                            if (_selectedIndex.value != 3) {
+                              _onItemTapped(3);
+                            }
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    NewSettingsPage(callback: callback),
+                              ),
+                            );
+                          }
                         },
                       ),
                       ListTile(
@@ -474,13 +458,15 @@ class _HomePageState extends State<HomePage> {
                   child: Column(
                     children: <Widget>[
                       const Spacer(),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(5, 30, 5, 20),
-                        child: Center(
-                          child: Text(
-                            AppLocalizations.of(context)!.madeBy,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 12),
+                      SafeArea(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(5, 30, 5, 20),
+                          child: Center(
+                            child: Text(
+                              AppLocalizations.of(context)!.madeBy,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(fontSize: 12),
+                            ),
                           ),
                         ),
                       ),
@@ -530,35 +516,34 @@ class _HomePageState extends State<HomePage> {
                             .colorScheme
                             .secondary
                             .withOpacity(0.2),
-                        leading: screenWidth > 1050
-                            ? null
-                            : Builder(
-                                builder: (context) => Transform.rotate(
-                                  angle: 22 / 7 * 2,
-                                  child: IconButton(
-                                    icon: const Icon(
-                                      Icons.horizontal_split_rounded,
-                                    ),
-                                    // color: Theme.of(context).iconTheme.color,
-                                    onPressed: () {
-                                      Scaffold.of(context).openDrawer();
-                                    },
-                                    tooltip: MaterialLocalizations.of(context)
-                                        .openAppDrawerTooltip,
-                                  ),
-                                ),
+                        leading: Builder(
+                          builder: (context) => Transform.rotate(
+                            angle: 22 / 7 * 2,
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.horizontal_split_rounded,
                               ),
+                              // color: Theme.of(context).iconTheme.color,
+                              onPressed: () {
+                                Scaffold.of(context).openDrawer();
+                              },
+                              tooltip: MaterialLocalizations.of(context)
+                                  .openAppDrawerTooltip,
+                            ),
+                          ),
+                        ),
                         destinations: [
                           NavigationRailDestination(
                             icon: const Icon(Icons.home_rounded),
                             label: Text(AppLocalizations.of(context)!.home),
                           ),
-                          NavigationRailDestination(
-                            icon: const Icon(Icons.trending_up_rounded),
-                            label: Text(
-                              AppLocalizations.of(context)!.topCharts,
+                          if (sectionsToShow.contains('Top Charts'))
+                            NavigationRailDestination(
+                              icon: const Icon(Icons.trending_up_rounded),
+                              label: Text(
+                                AppLocalizations.of(context)!.topCharts,
+                              ),
                             ),
-                          ),
                           NavigationRailDestination(
                             icon: const Icon(MdiIcons.youtube),
                             label: Text(AppLocalizations.of(context)!.youTube),
@@ -567,6 +552,13 @@ class _HomePageState extends State<HomePage> {
                             icon: const Icon(Icons.my_library_music_rounded),
                             label: Text(AppLocalizations.of(context)!.library),
                           ),
+                          if (sectionsToShow.contains('Settings'))
+                            NavigationRailDestination(
+                              icon: const Icon(Icons.settings_rounded),
+                              label: Text(
+                                AppLocalizations.of(context)!.settings,
+                              ),
+                            ),
                         ],
                       );
                     },
@@ -623,10 +615,6 @@ class _HomePageState extends State<HomePage> {
                                                       );
                                                       name = value.trim();
                                                       Navigator.pop(context);
-                                                      updateUserDetails(
-                                                        'name',
-                                                        value.trim(),
-                                                      );
                                                     },
                                                   );
                                                   setState(() {});
@@ -758,7 +746,9 @@ class _HomePageState extends State<HomePage> {
                                                           MediaQuery.of(context)
                                                                   .size
                                                                   .width -
-                                                              75,
+                                                              (rotated
+                                                                  ? 0
+                                                                  : 75),
                                                         ),
                                                   height: 55.0,
                                                   duration: const Duration(
@@ -837,7 +827,7 @@ class _HomePageState extends State<HomePage> {
                                   },
                                   body: SaavnHomePage(),
                                 ),
-                                if (!rotated || screenWidth > 1050)
+                                if (!rotated)
                                   Builder(
                                     builder: (context) => Padding(
                                       padding: const EdgeInsets.only(
@@ -870,7 +860,7 @@ class _HomePageState extends State<HomePage> {
                             const YouTube(),
                             const LibraryPage(),
                             if (sectionsToShow.contains('Settings'))
-                              SettingPage(callback: callback),
+                              NewSettingsPage(callback: callback),
                           ],
                         ),
                       ),
@@ -913,12 +903,14 @@ class _HomePageState extends State<HomePage> {
                               selectedColor:
                                   Theme.of(context).colorScheme.secondary,
                             ),
-                          SalomonBottomBarItem(
-                            icon: const Icon(MdiIcons.youtube),
-                            title: Text(AppLocalizations.of(context)!.youTube),
-                            selectedColor:
-                                Theme.of(context).colorScheme.secondary,
-                          ),
+                          if (sectionsToShow.contains('YouTube'))
+                            SalomonBottomBarItem(
+                              icon: const Icon(MdiIcons.youtube),
+                              title:
+                                  Text(AppLocalizations.of(context)!.youTube),
+                              selectedColor:
+                                  Theme.of(context).colorScheme.secondary,
+                            ),
                           SalomonBottomBarItem(
                             icon: const Icon(Icons.my_library_music_rounded),
                             title: Text(AppLocalizations.of(context)!.library),

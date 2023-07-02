@@ -24,7 +24,7 @@ import 'package:blackhole/CustomWidgets/empty_screen.dart';
 import 'package:blackhole/CustomWidgets/gradient_containers.dart';
 import 'package:blackhole/CustomWidgets/like_button.dart';
 import 'package:blackhole/CustomWidgets/miniplayer.dart';
-import 'package:blackhole/CustomWidgets/search_bar.dart';
+import 'package:blackhole/CustomWidgets/search_bar.dart' as searchbar;
 import 'package:blackhole/CustomWidgets/snackbar.dart';
 import 'package:blackhole/CustomWidgets/song_tile_trailing_menu.dart';
 import 'package:blackhole/Screens/Common/song_list.dart';
@@ -149,7 +149,7 @@ class _SearchPageState extends State<SearchPage> {
               child: Scaffold(
                 resizeToAvoidBottomInset: false,
                 backgroundColor: Colors.transparent,
-                body: SearchBar(
+                body: searchbar.SearchBar(
                   isYt: false,
                   controller: controller,
                   liveSearch: liveSearch,
@@ -157,7 +157,15 @@ class _SearchPageState extends State<SearchPage> {
                   hintText: AppLocalizations.of(context)!.searchText,
                   leading: IconButton(
                     icon: const Icon(Icons.arrow_back_rounded),
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      if (fromHome ?? false) {
+                        Navigator.pop(context);
+                      } else {
+                        setState(() {
+                          fromHome = true;
+                        });
+                      }
+                    },
                   ),
                   body: (fromHome!)
                       ? SingleChildScrollView(
@@ -207,9 +215,18 @@ class _SearchPageState extends State<SearchPage> {
                                             setState(
                                               () {
                                                 fetched = false;
-                                                query = search[index]
+                                                query = search
+                                                    .removeAt(index)
                                                     .toString()
                                                     .trim();
+                                                search.insert(
+                                                  0,
+                                                  query,
+                                                );
+                                                Hive.box('settings').put(
+                                                  'search',
+                                                  search,
+                                                );
                                                 controller.text = query;
                                                 controller.selection =
                                                     TextSelection.fromPosition(
@@ -307,9 +324,15 @@ class _SearchPageState extends State<SearchPage> {
                                                           status = false;
                                                           fromHome = false;
                                                           searchedData = {};
+                                                          if (search.contains(
+                                                            query,
+                                                          )) {
+                                                            search
+                                                                .remove(query);
+                                                          }
                                                           search.insert(
                                                             0,
-                                                            value[index],
+                                                            query,
                                                           );
                                                           if (search.length >
                                                               10) {

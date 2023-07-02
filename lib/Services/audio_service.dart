@@ -29,6 +29,7 @@ import 'package:blackhole/Helpers/playlist.dart';
 import 'package:blackhole/Screens/Player/audioplayer.dart';
 import 'package:blackhole/Services/isolate_service.dart';
 import 'package:blackhole/Services/yt_music.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:just_audio/just_audio.dart';
@@ -46,7 +47,10 @@ class AudioPlayerHandlerImpl extends BaseAudioHandler
   AndroidEqualizerParameters? _equalizerParams;
 
   late AudioPlayer? _player;
+  late String connectionType = 'mobile';
   late String preferredQuality;
+  late String preferredWifiQuality;
+  late String preferredMobileQuality;
   late List<int> preferredCompactNotificationButtons = [1, 2, 3];
   late bool resetOnSkip;
   // late String? stationId = '';
@@ -152,9 +156,41 @@ class AudioPlayerHandlerImpl extends BaseAudioHandler
       playbackState.add(playbackState.value.copyWith(speed: speed));
     });
 
-    preferredQuality = Hive.box('settings')
+    Logger.root.info('checking connectivity & setting quality');
+
+    Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+      if (result == ConnectivityResult.mobile) {
+        connectionType = 'mobile';
+        Logger.root.info(
+          'player | switched to mobile data, changing quality to $preferredMobileQuality',
+        );
+        preferredQuality = preferredMobileQuality;
+      } else if (result == ConnectivityResult.wifi) {
+        connectionType = 'wifi';
+        Logger.root.info(
+          'player | wifi connected, changing quality to $preferredWifiQuality',
+        );
+        preferredQuality = preferredWifiQuality;
+      } else if (result == ConnectivityResult.none) {
+        Logger.root.severe(
+          'player | internet connection not available',
+        );
+      } else {
+        Logger.root.info(
+          'player | unidentified network connection',
+        );
+      }
+    });
+
+    preferredMobileQuality = Hive.box('settings')
         .get('streamingQuality', defaultValue: '96 kbps')
         .toString();
+    preferredWifiQuality = Hive.box('settings')
+        .get('streamingWifiQuality', defaultValue: '320 kbps')
+        .toString();
+    preferredQuality = connectionType == 'wifi'
+        ? preferredWifiQuality
+        : preferredMobileQuality;
     resetOnSkip =
         Hive.box('settings').get('resetOnSkip', defaultValue: false) as bool;
     cacheSong =
@@ -174,10 +210,8 @@ class AudioPlayerHandlerImpl extends BaseAudioHandler
       }
 
       if (item.artUri.toString().startsWith('http')) {
-        if (item.genre != 'YouTube') {
-          addRecentlyPlayed(item);
-          _recentSubject.add([item]);
-        }
+        addRecentlyPlayed(item);
+        _recentSubject.add([item]);
 
         if (recommend && item.extras!['autoplay'] as bool) {
           final List<MediaItem> mediaQueue = queue.value;
@@ -464,9 +498,15 @@ class AudioPlayerHandlerImpl extends BaseAudioHandler
   }
 
   List<AudioSource> _itemsToSources(List<MediaItem> mediaItems) {
-    preferredQuality = Hive.box('settings')
+    preferredMobileQuality = Hive.box('settings')
         .get('streamingQuality', defaultValue: '96 kbps')
         .toString();
+    preferredWifiQuality = Hive.box('settings')
+        .get('streamingWifiQuality', defaultValue: '320 kbps')
+        .toString();
+    preferredQuality = connectionType == 'wifi'
+        ? preferredWifiQuality
+        : preferredMobileQuality;
     cacheSong =
         Hive.box('settings').get('cacheSong', defaultValue: true) as bool;
     useDown = Hive.box('settings').get('useDown', defaultValue: true) as bool;
@@ -521,6 +561,27 @@ class AudioPlayerHandlerImpl extends BaseAudioHandler
         ],
       );
       _player = AudioPlayer(audioPipeline: pipeline);
+
+      // Enable equalizer if used earlier
+      Logger.root.info('setting eq enabled');
+      final eqValue =
+          Hive.box('settings').get('setEqualizer', defaultValue: false) as bool;
+      _equalizer.setEnabled(eqValue);
+
+      // set equalizer params & bands
+      _equalizer.parameters.then((value) {
+        Logger.root.info('setting eq params');
+        _equalizerParams ??= value;
+
+        final List<AndroidEqualizerBand> bands = _equalizerParams!.bands;
+        bands.map(
+          (e) {
+            final gain = Hive.box('settings')
+                .get('equalizerBand${e.index}', defaultValue: 0.5) as double;
+            _equalizerParams!.bands[e.index].setGain(gain);
+          },
+        );
+      });
     } else {
       Logger.root.info('starting without eq pipeline');
       _player = AudioPlayer();
@@ -567,7 +628,7 @@ class AudioPlayerHandlerImpl extends BaseAudioHandler
   }
 
   Future<void> addLastQueue(List<MediaItem> queue) async {
-    if (queue.first.genre != 'YouTube') {
+    if (queue.isNotEmpty && queue.first.genre != 'YouTube') {
       Logger.root.info('saving last queue');
       final lastQueue =
           queue.map((item) => MediaItemConverter.mediaItemToMap(item)).toList();
@@ -609,7 +670,7 @@ class AudioPlayerHandlerImpl extends BaseAudioHandler
   Future<void> updateQueue(List<MediaItem> newQueue) async {
     await _playlist.clear();
     await _playlist.addAll(_itemsToSources(newQueue));
-    addLastQueue(newQueue);
+    // addLastQueue(newQueue);
     // stationId = '';
     // stationNames = newQueue.map((e) => e.id).toList();
     // SaavnAPI()
@@ -707,6 +768,7 @@ class AudioPlayerHandlerImpl extends BaseAudioHandler
     _player!.pause();
     await Hive.box('cache').put('lastIndex', _player!.currentIndex);
     await Hive.box('cache').put('lastPos', _player!.position.inSeconds);
+    await addLastQueue(queue.value);
   }
 
   @override
@@ -714,12 +776,15 @@ class AudioPlayerHandlerImpl extends BaseAudioHandler
 
   @override
   Future<void> stop() async {
+    Logger.root.info('stopping player');
     await _player!.stop();
     await playbackState.firstWhere(
       (state) => state.processingState == AudioProcessingState.idle,
     );
+    Logger.root.info('caching last index and position');
     await Hive.box('cache').put('lastIndex', _player!.currentIndex);
     await Hive.box('cache').put('lastPos', _player!.position.inSeconds);
+    await addLastQueue(queue.value);
   }
 
   @override

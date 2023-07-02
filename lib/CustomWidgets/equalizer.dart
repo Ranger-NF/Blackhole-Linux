@@ -99,7 +99,7 @@ class _EqualizerControlsState extends State<EqualizerControls> {
         if (data == null) return const SizedBox();
         return Row(
           children: [
-            for (final band in data['bands'])
+            for (final band in data['bands'] as List<Map>)
               Expanded(
                 child: Column(
                   children: [
@@ -150,6 +150,7 @@ class _VerticalSliderState extends State<VerticalSlider> {
   double? sliderValue;
 
   void setGain(int bandIndex, double gain) {
+    Hive.box('settings').put('equalizerBand$bandIndex', gain);
     widget.audioHandler
         .customAction('setBandGain', {'band': bandIndex, 'gain': gain});
   }
