@@ -1,4 +1,4 @@
-flutter_app: 
+flutter_app:
   command: blackhole
   arch: x64
   parent: /usr/local/lib
@@ -6,12 +6,11 @@ flutter_app:
 
 control:
   Package: BlackHole
-  Version: 0.1.0+3
+  Version: 0.2.0+4
   Architecture: amd64
   Essential: no
   Priority: optional
-  Maintainer:
-   - Ranger https://github.com/Ranger-NF
-   - BrightDV https://github.com/BrightDV
+  Maintainer: Ranger
+  Uploaders: BrightDV
   Description: An Open-Source Music Player App for all your needs!
   Homepage: https://github.com/Ranger-NF/Blackhole-Linux
