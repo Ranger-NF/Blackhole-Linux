@@ -1,3 +1,6 @@
+### Reason for archiving: Due to time constraints and lack of motivation to continue devolopment (You can contact me over instagram/email any further enquiries)
+---
+
 ![Repo Banner](https://user-images.githubusercontent.com/87353286/144381080-faf8e557-7909-43a1-a8e2-208936e5a8f8.png)
 
 # BlackHole For Linux
